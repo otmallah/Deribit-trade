@@ -19,7 +19,7 @@ using tcp = net::ip::tcp;
 
 int main()
 {
-    DeribitTrader trader("6uy2v3iX", "RTa2gJy9Yfbd8I7XuJnUevinKRy0XijkMQx4A_0s2gg");
+    DeribitTrader trader("clientId", "clientSecret");
     // trader.SymbolSubscribe("BTC-PERPETUAL");
     nlohmann::json data = trader.get_order_book("BTC-PERPETUAL");
     std::cout << data.dump(4) << std::endl; // Pretty print with 4 spaces indent
