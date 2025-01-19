@@ -1,7 +1,7 @@
 #include "DeribitTrader.hpp"
 
-DeribitTrader::DeribitTrader(const std::string& client_id, const std::string& client_secret)
-    : logger()
+DeribitTrader::DeribitTrader(const std::string &client_id, const std::string &client_secret)
+    : logger(), connection_pool(10, "test.deribit.com", "443")
 {
     this->client_id = client_id;
     this->client_secret = client_secret;
@@ -21,12 +21,13 @@ std::string DeribitTrader::get_access_token()
                   "\"params\": {"
                   "\"client_id\": \"" +
                   this->client_id + "\","
-                              "\"client_secret\": \"" +
+                                    "\"client_secret\": \"" +
                   this->client_secret + "\","
-                                  "\"grant_type\": \"client_credentials\""
-                                  "}}"});
+                                        "\"grant_type\": \"client_credentials\""
+                                        "}}"});
 
-    if (auth_response.status_code != 200) {
+    if (auth_response.status_code != 200)
+    {
         this->logger.log(LogLevel::ERROR, "Failed to get access token");
         return "";
     }
@@ -37,14 +38,15 @@ std::string DeribitTrader::get_access_token()
     return response["result"]["access_token"];
 }
 
-nlohmann::json DeribitTrader::get_order_book(const std::string& instrument_name)
+nlohmann::json DeribitTrader::get_order_book(const std::string &instrument_name)
 {
     cpr::Response response = cpr::Get(
         cpr::Url{this->base_url + "public/get_order_book"},
         cpr::Header{{"Content-Type", "application/json"}},
         cpr::Parameters{{"instrument_name", instrument_name}, {"depth", "100"}});
-    
-    if (response.status_code != 200) {
+
+    if (response.status_code != 200)
+    {
         this->logger.log(LogLevel::ERROR, "Failed to get order book");
         return nlohmann::json::parse("{}");
     }
@@ -56,7 +58,8 @@ nlohmann::json DeribitTrader::get_order_book(const std::string& instrument_name)
 
 nlohmann::json DeribitTrader::get_positions()
 {
-    if (this->access_token == "") {
+    if (this->access_token == "")
+    {
         this->logger.log(LogLevel::ERROR, "Access token is null");
         return nlohmann::json::parse("{}");
     }
@@ -64,8 +67,9 @@ nlohmann::json DeribitTrader::get_positions()
     cpr::Response response = cpr::Get(
         cpr::Url{this->base_url + "private/get_positions"},
         cpr::Header{{"Content-Type", "application/json"}, {"Authorization", "Bearer " + this->access_token}});
-    
-    if (response.status_code != 200) {
+
+    if (response.status_code != 200)
+    {
         this->logger.log(LogLevel::ERROR, "Failed to get positions");
         return nlohmann::json::parse("{}");
     }
@@ -75,9 +79,10 @@ nlohmann::json DeribitTrader::get_positions()
     return json_response["result"];
 }
 
-void DeribitTrader::cancel_order(const std::string& order_id)
+void DeribitTrader::cancel_order(const std::string &order_id)
 {
-    if (this->access_token == "") {
+    if (this->access_token == "")
+    {
         this->logger.log(LogLevel::ERROR, "Access token is null");
         return;
     }
@@ -92,16 +97,18 @@ void DeribitTrader::cancel_order(const std::string& order_id)
                   order_id + "\""
                              "}}"});
 
-    if (response.status_code != 200) {
+    if (response.status_code != 200)
+    {
         this->logger.log(LogLevel::ERROR, "Failed to cancel order");
     }
 
     this->logger.log(LogLevel::INFO, "Order cancelled successfully");
 }
 
-std::string DeribitTrader::place_order(const std::string& instrument_name, const std::string& side, const std::string& quantity, const std::string& price)
+std::string DeribitTrader::place_order(const std::string &instrument_name, const std::string &side, const std::string &quantity, const std::string &price)
 {
-    if (this->access_token == "") {
+    if (this->access_token == "")
+    {
         this->logger.log(LogLevel::ERROR, "Access token is null");
         return "";
     }
@@ -110,14 +117,16 @@ std::string DeribitTrader::place_order(const std::string& instrument_name, const
         cpr::Url{this->base_url + "private/" + side},
         cpr::Header{{"Content-Type", "application/json"}, {"Authorization", "Bearer " + this->access_token}},
         cpr::Body{"{\"instrument_name\": \"" + instrument_name + "\","
-                  "\"amount\": " + quantity + ","
-                  "\"type\": \"limit\","
-                  "\"price\": " + price + ","
-                  "\"label\": \"market0000234\","
-                  "\"post_only\": false}"}
-    );
+                                                                 "\"amount\": " +
+                  quantity + ","
+                             "\"type\": \"limit\","
+                             "\"price\": " +
+                  price + ","
+                          "\"label\": \"market0000234\","
+                          "\"post_only\": false}"});
 
-    if (response.status_code != 200) {
+    if (response.status_code != 200)
+    {
         this->logger.log(LogLevel::ERROR, "Failed to place order");
         return "";
     }
@@ -127,9 +136,10 @@ std::string DeribitTrader::place_order(const std::string& instrument_name, const
     return json_response["result"]["order"]["order_id"];
 }
 
-void DeribitTrader::update_order(const std::string& order_id, const std::string& quantity)
+void DeribitTrader::update_order(const std::string &order_id, const std::string &quantity)
 {
-    if (this->access_token == "") {
+    if (this->access_token == "")
+    {
         this->logger.log(LogLevel::ERROR, "Access token is null");
         return;
     }
@@ -146,17 +156,19 @@ void DeribitTrader::update_order(const std::string& order_id, const std::string&
                   quantity +
                   "}}"});
 
-    if (response.status_code != 200) {
+    if (response.status_code != 200)
+    {
         this->logger.log(LogLevel::ERROR, "Failed to update order");
     }
 
     this->logger.log(LogLevel::INFO, "Order updated successfully");
 }
 
-void DeribitTrader::SymbolSubscribe(const std::string& symbol)
+void DeribitTrader::SymbolSubscribe(const std::string &symbol)
 {
-    WebSocketConnection ws("test.deribit.com", "443");
-    ws.SymbolSubscribe(symbol);
+    WebSocketConnection *ws = this->connection_pool.get_connection();
+    ws->SymbolSubscribe(symbol);
+    this->connection_pool.return_connection(ws);
 }
 
 DeribitTrader::~DeribitTrader()

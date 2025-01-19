@@ -28,18 +28,21 @@ WebSocketConnection::~WebSocketConnection()
 
 void WebSocketConnection::SymbolSubscribe(const std::string &symbol)
 {
-    std::string subscribe_msg = R"({
-        "jsonrpc": "2.0",
-        "method": "public/subscribe",
-        "id": 42,
-        "params": {
-            "channels": [
-                "book.BTC-PERPETUAL.100ms",
-                "trades.BTC-PERPETUAL.100ms",
-                "ticker.BTC-PERPETUAL.100ms"
-            ]
-        }
-    })";
+    std::string subscribe_msg = "{"
+                                "\"jsonrpc\": \"2.0\","
+                                "\"method\": \"public/subscribe\","
+                                "\"id\": 42,"
+                                "\"params\": {"
+                                "\"channels\": ["
+                                "\"book." +
+                                symbol + ".100ms\","
+                                         "\"trades." +
+                                symbol + ".100ms\","
+                                         "\"ticker." +
+                                symbol + ".100ms\""
+                                         "]"
+                                         "}"
+                                         "}";
 
     logger.log(LogLevel::INFO, "Subscribing to channels");
     ws.write(net::buffer(subscribe_msg));
