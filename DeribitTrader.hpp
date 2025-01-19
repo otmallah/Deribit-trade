@@ -2,6 +2,7 @@
 #include <string>
 #include <nlohmann/json.hpp>
 #include <cpr/cpr.h>
+#include "WebsocketConnection.hpp"
 
 class DeribitTrader
 {
@@ -21,4 +22,5 @@ class DeribitTrader
         std::string client_id;
         std::string client_secret;
         std::string access_token;
+        Logger logger;
 };

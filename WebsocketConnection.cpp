@@ -15,13 +15,15 @@ namespace ssl = boost::asio::ssl;
 using tcp = net::ip::tcp;
 
 WebSocketConnection::WebSocketConnection(const std::string &host, const std::string &port)
-    : host(host), port(port), ctx(ssl::context::tlsv12_client), ws(ioc, ctx)
+    : host(host), port(port), ctx(ssl::context::tlsv12_client), ws(ioc, ctx), logger()
 {
     connect();
+    logger.log(LogLevel::INFO, "WebSocketConnection created");
 }
 
 WebSocketConnection::~WebSocketConnection()
 {
+    logger.log(LogLevel::INFO, "WebSocketConnection destroyed");
 }
 
 void WebSocketConnection::SymbolSubscribe(const std::string &symbol)
@@ -39,8 +41,9 @@ void WebSocketConnection::SymbolSubscribe(const std::string &symbol)
         }
     })";
 
+    logger.log(LogLevel::INFO, "Subscribing to channels");
     ws.write(net::buffer(subscribe_msg));
-    std::cout << "Subscribed to channels" << std::endl;
+    logger.log(LogLevel::INFO, "Subscribed to channels");
 
     beast::flat_buffer buffer;
     while (true)
@@ -58,12 +61,12 @@ void WebSocketConnection::connect()
 
     // Connect to IP address
     auto ep = net::connect(get_lowest_layer(ws), results);
-    std::cout << "Connected to: " << ep.address() << std::endl;
+    logger.log(LogLevel::INFO, "Connected to: " + ep.address().to_string());
 
     // Perform SSL handshake
     ws.next_layer().handshake(ssl::stream_base::client);
 
     // Perform WebSocket handshake
     ws.handshake(host, "/ws/api/v2");
-    std::cout << "Handshake completed" << std::endl;
+    logger.log(LogLevel::INFO, "Handshake completed");
 }

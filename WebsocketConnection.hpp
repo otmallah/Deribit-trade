@@ -4,6 +4,7 @@
 #include <boost/beast/ssl.hpp>
 #include <boost/asio/ssl/stream.hpp>
 #include <string>
+#include "Logger.hpp"
 
 namespace beast = boost::beast;
 namespace websocket = beast::websocket;
@@ -26,4 +27,5 @@ private:
     net::io_context ioc;
     ssl::context ctx{ssl::context::tlsv12_client};
     websocket::stream<beast::ssl_stream<tcp::socket>> ws{ioc, ctx};
+    Logger logger;
 };
